@@ -186,13 +186,20 @@ def word_embedding_forward(x, W):
     - out: Array of shape (N, T, D) giving word vectors for all input words.
     - cache: Values needed for the backward pass
     """
-    out, cache = None, None
+    out, cache = None, []
     ##############################################################################
     # TODO: Implement the forward pass for word embeddings.                      #
     #                                                                            #
     # HINT: This can be done in one line using NumPy's array indexing.           #
     ##############################################################################
-    pass
+    
+    N, T = x.shape
+    V, D = W.shape
+    out = np.zeros((N,T,D))
+    
+    for i in range(N):
+        out[i,:,:] = W[x[i,:]]
+    cache = (x, W)    
     ##############################################################################
     #                               END OF YOUR CODE                             #
     ##############################################################################
@@ -221,7 +228,15 @@ def word_embedding_backward(dout, cache):
     # Note that Words can appear more than once in a sequence.                   #
     # HINT: Look up the function np.add.at                                       #
     ##############################################################################
-    pass
+    
+    N, T, D = dout.shape
+    x, W = cache
+    dW = np.zeros(W.shape)
+    
+    for i in range(N):
+        for t in range(T):
+            dW[x[i,t]] += dout[i,t,:]
+    
     ##############################################################################
     #                               END OF YOUR CODE                             #
     ##############################################################################
