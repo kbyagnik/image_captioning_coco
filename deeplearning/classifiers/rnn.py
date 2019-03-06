@@ -139,49 +139,61 @@ class CaptioningRNN(object):
 		############################################################################
 		
 		h0, h0_cache = affine_forward(features, W_proj, b_proj)
-
-		word_em, word_em_cache = word_embedding_forward(captions_in, W_embed)
-
+		# print("\n Step1: ",h0.shape)
+		
+		word_vec, word_vec_cache = word_embedding_forward(captions_in, W_embed)
+		# print(" Step2: ",word_vec.shape)
+		
 		if self.cell_type == 'rnn':
-			h, h_cache = rnn_forward(word_em, h0, Wx, Wh, b)
-		elif self.cell_type == 'lstm':
+			hidden, rnn_cache = rnn_forward(word_vec, h0, Wx, Wh, b)
+			# print(" Step3: ", hidden.shape)
+			
+		# elif self.cell_type == 'lstm':
 			# handle for lstm
 		else:
 			raise ValueError("cell_type not compatible :", self.cell_type)
 
-		out, out_cache = temporal_affine_forward(h, W_vocab, b_vocab)
-
-
-
+		out, out_cache = temporal_affine_forward(hidden, W_vocab, b_vocab)
+		# print(" Step4: ", out.shape)
+		
 		# Computing the loss on the captions
 		loss, dout = temporal_softmax_loss(out, captions_out, mask)
-
-		# Propogating loss using gradients
-		dh, dW_vocab, db_vocab = temporal_affine_backward(dout, out_cache)
-
+		# print(" Step5: ", dout.shape)
+		
+		
+		
+		# Back Propogating loss using gradients
+		dhidden, grads['W_vocab'], grads['b_vocab'] = temporal_affine_backward(dout, out_cache)
+		# print(" Step-4: ",dhidden.shape)
+		
 		if self.cell_type == 'rnn':
-			dembed, dh0, dWx, dWh, db = rnn_backward(dh, h_cache)
+			dword_vec, dh0, dWx, dWh, db = rnn_backward(dhidden, rnn_cache)
+			# print(" Step-3: ",dword_vec.shape)
+
 			# h, h_cache = rnn_forward(word_em, h0, Wx, Wh, b)
-		elif self.cell_type == 'lstm':
+		# elif self.cell_type == 'lstm':
 			# handle for lstm
 		else:
 			raise ValueError("cell_type not compatible :", self.cell_type)
 
-		dw_em = word_embedding_backward(dembed, word_em_cache)
+		dW_embed = word_embedding_backward(dword_vec, word_vec_cache)
+		# print(" Step-2: ",dW_embed.shape)
+
 		dx_, dWproj, dbproj = affine_backward(dh0, h0_cache)
+		# print(" Step-1: ",dWproj.shape)
 
 
 		grads['Wx'] = dWx
 		grads['Wh'] = dWh
 		grads['b'] = db
 
-		grads['W_embed'] = dembed
+		grads['W_embed'] = dW_embed
 		
 		grads['W_proj'] = dWproj
-		grads['dbproj'] = dbproj
+		grads['b_proj'] = dbproj
 
-		grads['W_vocab'] = dW_vocab
-		grads['b_vocab'] = db_vocab
+		# grads['W_vocab'] = dW_vocab
+		# grads['b_vocab'] = db_vocab
 		
 		############################################################################
 		#                             END OF YOUR CODE                             #
