@@ -3,3 +3,4 @@
 .env/*
 deeplearning/datasets/coco_captioning/*
 .ipynb_checkpoints/*
+*.yml
