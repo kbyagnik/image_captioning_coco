@@ -148,7 +148,8 @@ class CaptioningRNN(object):
 			hidden, rnn_cache = rnn_forward(word_vec, h0, Wx, Wh, b)
 			# print(" Step3: ", hidden.shape)
 			
-		# elif self.cell_type == 'lstm':
+		elif self.cell_type == 'lstm':
+			pass
 			# handle for lstm
 		else:
 			raise ValueError("cell_type not compatible :", self.cell_type)
@@ -171,7 +172,8 @@ class CaptioningRNN(object):
 			# print(" Step-3: ",dword_vec.shape)
 
 			# h, h_cache = rnn_forward(word_em, h0, Wx, Wh, b)
-		# elif self.cell_type == 'lstm':
+		elif self.cell_type == 'lstm':
+			pass
 			# handle for lstm
 		else:
 			raise ValueError("cell_type not compatible :", self.cell_type)
@@ -179,7 +181,7 @@ class CaptioningRNN(object):
 		dW_embed = word_embedding_backward(dword_vec, word_vec_cache)
 		# print(" Step-2: ",dW_embed.shape)
 
-		dx_, dWproj, dbproj = affine_backward(dh0, h0_cache)
+		dx, dWproj, dbproj = affine_backward(dh0, h0_cache)
 		# print(" Step-1: ",dWproj.shape)
 
 
@@ -256,7 +258,39 @@ class CaptioningRNN(object):
 		# functions; you'll need to call rnn_step_forward or lstm_step_forward in #
 		# a loop.                                                                 #
 		###########################################################################
-		pass
+		
+		V, W = W_embed.shape
+
+		h0, h0_cache = affine_forward(features, W_proj, b_proj)
+
+		# 
+
+		captions[:,0] = self._start
+
+		for i in range(1, max_length):
+			word = np.eye(V)[captions[:, i-1]]
+
+			word_vecs = np.dot(word, W_embed)
+
+			if self.cell_type == "rnn":
+				rnn_h, rnn_cache = rnn_step_forward(word_vecs, h0, Wx, Wh, b)
+				h0 = rnn_h
+
+			elif self.cell_type == "lstm":
+				pass
+
+			else:
+				raise ValueError("cell_type not compatible :", self.cell_type)
+
+			out, out_cache = affine_forward(rnn_h, W_vocab, b_vocab)
+
+			captions[:,i] = out.argmax(1)
+
+			# if captions[:,i] == self._end:
+			# 	break
+
+			# print(captions)
+
 		############################################################################
 		#                             END OF YOUR CODE                             #
 		############################################################################
