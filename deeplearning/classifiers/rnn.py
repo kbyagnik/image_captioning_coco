@@ -149,7 +149,7 @@ class CaptioningRNN(object):
 			# print(" Step3: ", hidden.shape)
 			
 		elif self.cell_type == 'lstm':
-			pass
+			hidden, rnn_cache = lstm_forward(word_vec, h0, Wx, Wh, b)
 			# handle for lstm
 		else:
 			raise ValueError("cell_type not compatible :", self.cell_type)
@@ -173,7 +173,7 @@ class CaptioningRNN(object):
 
 			# h, h_cache = rnn_forward(word_em, h0, Wx, Wh, b)
 		elif self.cell_type == 'lstm':
-			pass
+			dword_vec, dh0, dWx, dWh, db = lstm_backward(dhidden, rnn_cache)
 			# handle for lstm
 		else:
 			raise ValueError("cell_type not compatible :", self.cell_type)
@@ -258,26 +258,26 @@ class CaptioningRNN(object):
 		# functions; you'll need to call rnn_step_forward or lstm_step_forward in #
 		# a loop.                                                                 #
 		###########################################################################
-		
+
 		V, W = W_embed.shape
-
-		h0, h0_cache = affine_forward(features, W_proj, b_proj)
-
-		# 
-
 		captions[:,0] = self._start
 
-		for i in range(1, max_length):
-			word = np.eye(V)[captions[:, i-1]]
+		h0, h0_cache = affine_forward(features, W_proj, b_proj)
+		if self.cell_type == "lstm":
+			c0 = np.zeros(h0.shape)
 
-			word_vecs = np.dot(word, W_embed)
+		for i in range(max_length):
+			word = np.eye(V)[captions[:,i-1]]
+			word_vecs = word @ W_embed
 
 			if self.cell_type == "rnn":
 				rnn_h, rnn_cache = rnn_step_forward(word_vecs, h0, Wx, Wh, b)
 				h0 = rnn_h
 
 			elif self.cell_type == "lstm":
-				pass
+				rnn_h, rnn_c, rnn_cache = lstm_step_forward(word_vecs, h0, c0, Wx, Wh, b)
+				h0 = rnn_h
+				c0 = rnn_c
 
 			else:
 				raise ValueError("cell_type not compatible :", self.cell_type)
