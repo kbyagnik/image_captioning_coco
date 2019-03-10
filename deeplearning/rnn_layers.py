@@ -162,7 +162,7 @@ def rnn_backward(dh, cache):
 		dWx += dWxt
 		dWh += dWht
 		db += dbt
-				
+		
 		dx[:,t,:] = dxt
 		dh0 = dh_prevt
 	##############################################################################
@@ -227,8 +227,8 @@ def word_embedding_backward(dout, cache):
 	# HINT: Look up the function np.add.at                                       #
 	##############################################################################
 	
-	N, T, D = dout.shape
 	x, W = cache
+	N, T, D = dout.shape
 	dW = np.zeros(W.shape)
 	
 	for i in range(N):
@@ -467,7 +467,7 @@ def lstm_backward(dh, cache):
 	dprev_h = np.zeros((N, H))
 
 	for t in range(T-1, -1, -1):
-		dxt, dprev_h, dprev_c, dWxt, dWht, dbt = lstm_step_backward(dh[:, t, :]+dprev_h, dprev_c, cache.pop())
+		dxt, dprev_h, dprev_c, dWxt, dWht, dbt = lstm_step_backward(dh[:, t, :]+dprev_h, dprev_c, cache[t])
 		
 		dWx += dWxt
 		dWh += dWht

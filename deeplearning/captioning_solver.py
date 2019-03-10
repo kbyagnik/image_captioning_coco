@@ -44,6 +44,8 @@ def evaluate_model(model, data):
     for split in BLEUscores:
         print('Average BLEU score for %s: %f' % (split, BLEUscores[split]))
 
+    return BLEUscores['val']
+
 
 class CaptioningSolver(object):
     """
@@ -262,7 +264,7 @@ class CaptioningSolver(object):
             epoch_end = (t + 1) % iterations_per_epoch == 0
             if epoch_end:
                 self.epoch += 1
-                if bleuData != None and self.epoch % 2 == 0:
+                if bleuData != None and self.epoch % 1 == 0:
                     print("Epoch: ", self.epoch, " evaluating BLUE scores")
                     evaluate_model(self.model, bleuData)
                     print("")

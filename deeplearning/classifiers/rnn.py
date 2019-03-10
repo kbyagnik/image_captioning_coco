@@ -284,7 +284,7 @@ class CaptioningRNN(object):
 
 			out, out_cache = affine_forward(rnn_h, W_vocab, b_vocab)
 
-			captions[:,i] = out.argmax(1)
+			captions[:,i] = out.argmax(axis=1)
 
 			# if captions[:,i] == self._end:
 			# 	break
